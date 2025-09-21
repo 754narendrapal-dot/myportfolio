@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subject Wise Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 20px;
+      text-align: center;
+    }
+    .quiz-box {
+      max-width: 650px;
+      margin: auto;
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 12px;
+    }
+    h1 {
+      color: #38bdf8;
+    }
+    .btn {
+      padding: 10px 20px;
+      margin: 8px;
+      background: #06b6d4;
+      color: #041025;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .btn:hover {
+      background: #0891b2;
+    }
+    .option {
+      background: #334155;
+      margin: 8px 0;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .option:hover {
+      background: #475569;
+    }
+    .correct {
+      background: #16a34a !important;
+      color: #fff;
+    }
+    .wrong {
+      background: #dc2626 !important;
+      color: #fff;
+    }
+    .disabled {
+      pointer-events: none;
+      opacity: 0.7;
+    }
+    #controls {
+      margin-top: 15px;
+    }
+    #scoreBox {
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 20px;
+      color: #facc15;
+    }
+    #timer {
+      font-size: 18px;
+      margin: 10px 0;
+      color: #f87171;
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz-box" id="quizBox">
+    <h1>📘 Subject Wise Quiz</h1>
+    <p>कृपया एक विषय चुनें:</p>
+    <button class="btn" onclick="startQuiz('computer')">💻 Computer</button>
+    <button class="btn" onclick="startQuiz('gk')">🌍 GK</button>
+    <button class="btn" onclick="startQuiz('math')">➗ Math</button>
+    <button class="btn" onclick="startQuiz('science')">🔬 Science</button>
+  </div>
+
+  <script>
+    const quizData = {
+      computer: [
+        { question: "HTML का फुल फॉर्म क्या है?", options: ["Hyper Text Markup Language", "High Transfer Machine Learning", "Home Tool Markup Language", "Hyperlink Test Marking Language"], answer: 0 },
+        { question: "CSS का उपयोग किसलिए होता है?", options: ["Design और Style", "Database Management", "Server Programming", "Machine Learning"], answer: 0 }
+      ],
+      gk: [
+        { question: "भारत की राजधानी क्या है?", options: ["दिल्ली", "मुंबई", "कोलकाता", "चेन्नई"], answer: 0 },
+        { question: "ताजमहल कहाँ स्थित है?", options: ["दिल्ली", "आगरा", "जयपुर", "लखनऊ"], answer: 1 }
+      ],
+      math: [
+        { question: "2 + 2 = ?", options: ["3", "4", "5", "6"], answer: 1 },
+        { question: "√16 कितना है?", options: ["2", "3", "4", "5"], answer: 2 }
+      ],
+      science: [
+        { question: "पानी का रासायनिक सूत्र क्या है?", options: ["CO2", "O2", "H2O", "NaCl"], answer: 2 },
+        { question: "धरती पर सबसे बड़ा ग्रह कौन सा है?", options: ["पृथ्वी", "शनि", "बृहस्पति", "मंगल"], answer: 2 }
+      ]
+    };
+
+    let currentSubject = "";
+    let currentQuestion = 0;
+    let score = 0;
+    let timer;
+    let timeLeft = 60; // seconds
+
+    function startQuiz(subject) {
+      currentSubject = subject;
+      currentQuestion = 0;
+      score = 0;
+      timeLeft = 60;
+      startTimer();
+      loadQuestion();
+    }
+
+    function startTimer() {
+      clearInterval(timer);
+      timer = setInterval(() => {
+        document.getElementById("timer").innerText = "⏰ Time left: " + timeLeft + "s";
+        timeLeft--;
+        if(timeLeft < 0){
+          clearInterval(timer);
+          finishQuiz();
+        }
+      }, 1000);
+    }
+
+    function loadQuestion() {
+      let q = quizData[currentSubject][currentQuestion];
+      document.getElementById("quizBox").innerHTML = `
+        <h2>${q.question}</h2>
+        <div id="options"></div>
+        <div id="controls">
+          <button class="btn" id="prevBtn">Previous</button>
+          <button class="btn" id="nextBtn">Next</button>
+          <button class="btn" id="submitBtn">Submit</button>
+        </div>
+        <div id="timer">⏰ Time left: ${timeLeft}s</div>
+        <div id="scoreBox">Score: ${score}</div>
+      `;
+      let optionsDiv = document.getElementById("options");
+      q.options.forEach((opt, i) => {
+        let div = document.createElement("div");
+        div.className = "option";
+        div.innerText = opt;
+        div.onclick = () => checkAnswer(div, i === q.answer);
+        optionsDiv.appendChild(div);
+      });
+
+      // Previous button
+      const prevBtn = document.getElementById("prevBtn");
+      prevBtn.onclick = () => {
+        if(currentQuestion > 0) {
+          currentQuestion--;
+          loadQuestion();
+        }
+      };
+      prevBtn.style.display = currentQuestion === 0 ? "none" : "inline-block";
+
+      // Next button
+      const nextBtn = document.getElementById("nextBtn");
+      nextBtn.onclick = () => {
+        if(currentQuestion < quizData[currentSubject].length - 1) {
+          currentQuestion++;
+          loadQuestion();
+        } else {
+          finishQuiz();
+        }
+      };
+
+      // Submit button
+      const submitBtn = document.getElementById("submitBtn");
+      submitBtn.onclick = () => finishQuiz();
+    }
+
+    function checkAnswer(option, isCorrect) {
+      if (option.classList.contains("disabled")) return;
+      if (isCorrect) {
+        option.classList.add("correct");
+        score++;
+      } else {
+        option.classList.add("wrong");
+      }
+      let allOptions = document.querySelectorAll(".option");
+      allOptions.forEach(opt => opt.classList.add("disabled"));
+      document.getElementById("scoreBox").innerText = "Score: " + score;
+    }
+
+    function finishQuiz() {
+      clearInterval(timer);
+      let total = quizData[currentSubject].length;
+      let correctAnswers = quizData[currentSubject].map((q,i) => `${i+1}. ${q.options[q.answer]}`).join("<br>");
+      document.getElementById("quizBox").innerHTML = `
+        <h2>🎉 Quiz Finished!</h2>
+        <p id="scoreBox">आपका स्कोर: ${score} / ${total}</p>
+        <h3>✔ सही उत्तर:</h3>
+        <p>${correctAnswers}</p>
+        <button class="btn" onclick="location.reload()">🔁 फिर से शुरू करें</button>
+      `;
+    }
+  </script>
+</body>
+</html>
